@@ -247,7 +247,7 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
                                         <input
                                             type="text"
                                             value={duenoSearchTerm}
-                                            onChange={(e) => setDuenoSearchTerm(e.target.value)}
+                                            onChange={handleDuenoSearchChange}
                                             placeholder="Buscar Dueño..."
                                             style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                                             disabled={loading}
