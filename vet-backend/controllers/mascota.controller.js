@@ -37,24 +37,39 @@ const findAllActive = async () => {
 };
 
 // 2. Crear nueva mascota (POST)
-const create = async (data) => {
-    // ... (Tu código de create) ...
-    const query = `
-        INSERT INTO mascotas (id_dueno, nombre, especie, raza, fecha_nacimiento, peso_inicial, foto_url)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *
-    `;
-    const values = [
-        data.id_dueno, data.nombre, data.especie, data.raza,
-        data.fecha_nacimiento, data.peso_inicial, data.foto_url
-    ];
-    const result = await pool.query(query, values);
-    return result.rows[0];
+const create = async (req, res) => {
+    try {
+        const { id_dueno, nombre, especie, raza, fecha_nacimiento, peso_inicial, foto_url } = req.body;
+
+        if (!id_dueno) {
+            return res.status(400).json({ message: 'Error: El ID del Dueño es obligatorio y falta.' });
+        }
+
+        const payload = {
+            id_dueno,
+            nombre,
+            especie,
+            raza,
+            fecha_nacimiento,
+            peso_inicial,
+            foto_url
+        };
+
+        const nuevaMascota = await mascotaModel.create(payload); // Llama al modelo
+        return res.status(201).json(nuevaMascota);
+
+    } catch (error) {
+        console.error('Error al crear mascota (FINAL):', error);
+        // Devolver un mensaje más específico si es un error de DB
+        if (error.code === '23502') { // Código de error PostgreSQL para NOT NULL violation
+            return res.status(500).json({ message: 'Error de la Base de Datos: Falta un campo obligatorio (NOT NULL).', detail: error.detail });
+        }
+        return res.status(500).json({ message: 'Error interno del servidor al crear mascota.' });
+    }
 };
 
 // 3. Actualizar mascota (PUT)
 const update = async (id, data) => {
-    // ... (Tu código de update) ...
     const query = `
         UPDATE mascotas SET 
         id_dueno = COALESCE($1, id_dueno), 
@@ -78,7 +93,6 @@ const update = async (id, data) => {
 
 // 4. Eliminación Lógica (DELETE)
 const logicalDelete = async (id) => {
-    // ... (Tu código de logicalDelete) ...
     const query = 'UPDATE mascotas SET activo = FALSE WHERE id = $1 RETURNING id, nombre, activo';
     const result = await pool.query(query, [id]);
     return result.rows[0];
@@ -107,7 +121,7 @@ const findById = async (req, res) => {
 
 // 6. Buscar por dueño
 const findByDuenoId = async (idDueno) => {
-    // ... (Tu código de findByDuenoId) ...
+
     const query = `
         SELECT 
             m.*, 
@@ -125,7 +139,7 @@ const findByDuenoId = async (idDueno) => {
 
 // 7. Reactivación (Restore)
 const restore = async (id) => {
-    // ... (Tu código de restore) ...
+
     const query = 'UPDATE mascotas SET activo = TRUE WHERE id = $1 RETURNING id, nombre, activo';
     const result = await pool.query(query, [id]);
     return result.rows[0];
@@ -133,7 +147,7 @@ const restore = async (id) => {
 
 // 8. Listar TODAS las mascotas (activas e inactivas)
 const findAllIncludingInactive = async () => {
-    // ... (Tu código de findAllIncludingInactive) ...
+
     const query = `
         SELECT 
             m.id, m.nombre, m.especie, m.raza, m.fecha_nacimiento, m.foto_url, m.activo,
@@ -146,7 +160,7 @@ const findAllIncludingInactive = async () => {
 };
 
 const searchMascotas = async (searchTerm) => {
-    // ... (Tu código de searchMascotas) ...
+
     const query = `
         SELECT 
             m.*, 

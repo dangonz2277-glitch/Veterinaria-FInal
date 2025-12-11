@@ -36,7 +36,6 @@ const update = async (id, data) => {
 };
 
 const search = async (searchTerm) => {
-    // ... (Tu código de búsqueda) ...
     const query = `
         SELECT id, nombre, telefono, email, direccion 
         FROM duenos 

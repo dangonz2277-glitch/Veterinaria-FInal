@@ -1,13 +1,12 @@
-// Archivo: /vet-frontend/src/components/UserForm.js
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/auth/register';
+const API_URL = 'https://veterinaria-final-1.onrender.com/api/auth/register';
 
 const UserForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [rol, setRol] = useState('veterinario'); // Valor por defecto
+    const [rol, setRol] = useState('veterinario');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
@@ -23,10 +22,9 @@ const UserForm = () => {
         }
 
         try {
-            // Se envía el rol, email y password al Backend (POST /api/auth/register)
             await axios.post(API_URL, { email, password, rol }, {
                 headers: {
-                    'Authorization': `Bearer ${token}` // 🔑 Requiere el JWT para la seguridad
+                    'Authorization': `Bearer ${token}`
                 }
             });
 

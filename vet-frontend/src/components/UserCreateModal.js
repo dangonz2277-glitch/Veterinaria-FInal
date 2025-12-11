@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
-// El modal recibe tres props:
-// 1. isVisible: booleano para mostrar/ocultar.
-// 2. onClose: función para cerrar el modal.
-// 3. onUserCreated: función para refrescar la lista padre.
 const UserCreateModal = ({ isVisible, onClose, onUserCreated }) => {
 
     // Estados del formulario
@@ -67,7 +63,7 @@ const UserCreateModal = ({ isVisible, onClose, onUserCreated }) => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 1000 // Asegura que esté por encima de todo
+        zIndex: 1000
     };
 
     const contentStyle = {

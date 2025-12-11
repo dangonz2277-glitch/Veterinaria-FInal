@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const MascotaInactiveList = () => {
     const [inactivos, setInactivos] = useState([]);
@@ -41,8 +41,8 @@ const MascotaInactiveList = () => {
         try {
             await axios.put(`${API_BASE_URL}/mascotas/estado/${id}`, { activo: true }, { headers });
             alert("Paciente restaurado con éxito.");
-            fetchInactivos(); // Refrescar la lista de inactivos
-            navigate(`/mascotas/${id}`); // Ir al detalle
+            fetchInactivos();
+            navigate(`/mascotas/${id}`);
         } catch (err) {
             setError('Error al restaurar al paciente.');
         }

@@ -3,18 +3,17 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-const API_URL = 'http://localhost:3000/api/auth/login';
+const API_URL = 'https://veterinaria-final-1.onrender.com/api/auth/login';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [captchaValue, setCaptchaValue] = useState(null); // Estado para el valor del CAPTCHA
+    const [captchaValue, setCaptchaValue] = useState(null);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    // 🔑 NOTA IMPORTANTE: Reemplaza con tu propia clave pública de reCAPTCHA
+    // Reemplaza con tu propia clave pública de reCAPTCHA
     const RECAPTCHA_SITE_KEY = '6LcqZiYsAAAAABPTrvAnGBqaUVzNPzYTlPIQtokf';
-
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -24,7 +23,6 @@ const Login = () => {
             setError('Por favor, completa el CAPTCHA.');
             return;
         }
-
         try {
             // 2. Llamada al Backend para autenticación
             const response = await axios.post(API_URL, { email, password });
@@ -40,7 +38,6 @@ const Login = () => {
             navigate('/dashboard');
 
         } catch (err) {
-            // 401 Unauthorized o 400 Bad Request
             setError(err.response?.data?.message || 'Error de conexión. Inténtalo de nuevo.');
         }
     };
@@ -81,7 +78,7 @@ const Login = () => {
 
                 <button
                     type="submit"
-                    disabled={!captchaValue} // Deshabilita si el CAPTCHA no está completo
+                    disabled={!captchaValue}
                     style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white' }}
                 >
                     Ingresar

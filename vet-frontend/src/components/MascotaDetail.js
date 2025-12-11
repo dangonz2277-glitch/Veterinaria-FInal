@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FichaMedicaModal from './FichaMedicaModal';
 import FichaMedicaDetailModal from './FichaMedicaDetailModal';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const MascotaDetail = () => {
     const { id: mascotaId } = useParams();
@@ -17,15 +17,14 @@ const MascotaDetail = () => {
 
     const [isFichaModalOpen, setIsFichaModalOpen] = useState(false); // Modal de CREACIÓN
     const [selectedFichaId, setSelectedFichaId] = useState(null); // ID para Modal de DETALLE
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': `Bearer ${token}` };
 
     // Usamos useCallback para que la función fetchData no cambie en cada render
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const headers = { 'Authorization': `Bearer ${token}` };
 
         // --- 1. OBTENER DETALLE DE MASCOTA (CRÍTICO) ---
-        // Si esto falla (404, 500), el componente se detiene.
         try {
             const mascotaResponse = await axios.get(`${API_BASE_URL}/mascotas/${mascotaId}`, { headers });
             setMascota(mascotaResponse.data);
@@ -40,14 +39,11 @@ const MascotaDetail = () => {
             return; // Detener si la mascota no carga
         }
 
-        // --- 2. OBTENER HISTORIAL CLÍNICO (Separado para evitar que falle el detalle) ---
-        // Si esta llamada falla, el componente principal (la mascota) ya cargó.
+        // --- 2. OBTENER HISTORIAL CLÍNICO
         try {
-            // Asume la ruta: GET /api/fichas/mascota/:id
             const fichasResponse = await axios.get(`${API_BASE_URL}/fichas/mascota/${mascotaId}`, { headers });
             setFichas(fichasResponse.data);
         } catch (err) {
-            // Manejo suave: si el historial falla, simplemente mostramos un array vacío.
             console.warn("Advertencia: No se pudo cargar el historial clínico. (Ruta /fichas/mascota/:id falló)", err);
             setFichas([]);
         } finally {
@@ -58,13 +54,13 @@ const MascotaDetail = () => {
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]); // Depende de fetchData para recargar si hay cambios (ej. al crear una ficha)
+    }, [fetchData]);
 
     const handleEliminarLogico = async () => {
         if (!window.confirm("¿Está seguro de dar de baja a este paciente? Esto lo moverá al Historial Pacientes.")) return;
 
         try {
-            // PUT /api/mascotas/estado/:id con { activo: false }
+
             await axios.put(`${API_BASE_URL}/mascotas/estado/${mascotaId}`, { activo: false }, { headers });
             alert("Paciente dado de baja exitosamente. Será redirigido al listado activo.");
             navigate('/mascotas');
@@ -197,14 +193,14 @@ const MascotaDetail = () => {
             <FichaMedicaDetailModal
                 fichaId={selectedFichaId}
                 isVisible={selectedFichaId !== null}
-                onClose={() => setSelectedFichaId(null)} // Cierra al resetear el ID
+                onClose={() => setSelectedFichaId(null)}
             />
 
             {/* --- INTEGRACIÓN DEL MODAL DE CREACIÓN DE FICHA --- */}
             <FichaMedicaModal
                 isVisible={isFichaModalOpen}
                 onClose={() => setIsFichaModalOpen(false)}
-                onFichaCreated={fetchData} // Refresca la lista de fichas después de crear
+                onFichaCreated={fetchData}
                 mascotaId={mascotaId}
             />
 

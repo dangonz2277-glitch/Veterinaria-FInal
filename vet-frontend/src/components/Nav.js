@@ -7,7 +7,7 @@ const Nav = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.clear(); // Elimina el token y el rol
+        localStorage.clear();
         navigate('/login');
     };
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const FichaMedicaModal = ({ isVisible, onClose, onFichaCreated, mascotaId }) => {
 
@@ -25,7 +25,6 @@ const FichaMedicaModal = ({ isVisible, onClose, onFichaCreated, mascotaId }) => 
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                // Asume que el ID del usuario está en 'id' dentro del token
                 return decoded.id;
             } catch (e) {
                 console.error("Error decoding token:", e);
@@ -60,15 +59,14 @@ const FichaMedicaModal = ({ isVisible, onClose, onFichaCreated, mascotaId }) => 
             ...fichaData,
             id_mascota: mascotaId,
             id_veterinario: idVeterinario,
-            fecha_consulta: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
+            fecha_consulta: new Date().toISOString().split('T')[0],
         };
 
         try {
-            // POST /api/fichas
             await axios.post(`${API_BASE_URL}/fichas`, payload, { headers });
 
             setMessage('✅ Ficha Médica registrada con éxito.');
-            onFichaCreated(); // Refresca la lista de fichas en MascotaDetail
+            onFichaCreated();
 
             // Limpiar y cerrar
             setTimeout(() => {
@@ -84,8 +82,8 @@ const FichaMedicaModal = ({ isVisible, onClose, onFichaCreated, mascotaId }) => 
         }
     };
 
-    // Estilos del Modal (simples)
-    const modalStyle = { /* ... estilos para modal fixed ... */
+    // Estilos del Modal
+    const modalStyle = {
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)',
         display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
     };

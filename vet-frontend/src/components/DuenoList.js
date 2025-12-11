@@ -1,16 +1,14 @@
-// Archivo: /vet-frontend/src/components/DuenoList.js
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import DuenoFormModal from './DuenoFormModal'; // Necesario para la edición
+import DuenoFormModal from './DuenoFormModal';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const DuenoList = () => {
     const [duenos, setDuenos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [modalDuenoId, setModalDuenoId] = useState(null); // ID del dueño a editar
+    const [modalDuenoId, setModalDuenoId] = useState(null);
 
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };

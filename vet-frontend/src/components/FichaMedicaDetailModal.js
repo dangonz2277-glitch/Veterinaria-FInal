@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 // Recibe fichaId, isVisible, onClose
 const FichaMedicaDetailModal = ({ fichaId, isVisible, onClose }) => {
@@ -14,22 +14,19 @@ const FichaMedicaDetailModal = ({ fichaId, isVisible, onClose }) => {
     const headers = { 'Authorization': `Bearer ${token}` };
 
     useEffect(() => {
-        // Solo hacemos la petición si el modal está visible y tenemos un ID de ficha
         if (isVisible && fichaId) {
             fetchFichaDetail(fichaId);
         } else if (!isVisible) {
-            // Limpiamos el estado al cerrar el modal
             setFicha(null);
             setLoading(true);
             setError('');
         }
-    }, [isVisible, fichaId]); // Depende de la visibilidad y del ID de la ficha a mostrar
+    }, [isVisible, fichaId]);
 
     const fetchFichaDetail = async (id) => {
         setLoading(true);
         setError('');
         try {
-            // Asumimos que tienes el endpoint: GET /api/fichas/:id
             const response = await axios.get(`${API_BASE_URL}/fichas/${id}`, { headers });
             setFicha(response.data);
         } catch (err) {
@@ -39,15 +36,13 @@ const FichaMedicaDetailModal = ({ fichaId, isVisible, onClose }) => {
         }
     };
 
-    // Función de descarga PDF (Actualizada para llamar al Backend)
+    // Función de descarga PDF
     const handleDownloadPDF = async () => {
         try {
             const url = `${API_BASE_URL}/fichas/reporte/${fichaId}`;
             const token = localStorage.getItem('token');
-
-            // Hacemos la petición para obtener el archivo como un BLOB (binario)
             const response = await axios.get(url, {
-                responseType: 'blob', // CLAVE: Pedir respuesta como Blob
+                responseType: 'blob',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -59,7 +54,6 @@ const FichaMedicaDetailModal = ({ fichaId, isVisible, onClose }) => {
             const link = document.createElement('a');
             link.href = downloadUrl;
 
-            // El nombre del archivo debe coincidir con el Content-Disposition del Backend
             link.setAttribute('download', `Ficha_Medica_${fichaId}.pdf`);
             document.body.appendChild(link);
             link.click();

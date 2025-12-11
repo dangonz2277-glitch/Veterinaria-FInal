@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UserCreateModal from './UserCreateModal';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const UserList = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false); // <-- NUEVO ESTADO PARA EL MODAL
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
@@ -25,7 +25,6 @@ const UserList = () => {
             setUsers(response.data);
             setError('');
         } catch (err) {
-            // ... (lógica de manejo de errores de la API) ...
             let errorMessage = 'Error de conexión con el servidor.';
             if (err.response) {
                 if (err.response.status === 403) {
@@ -101,7 +100,7 @@ const UserList = () => {
             <UserCreateModal
                 isVisible={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onUserCreated={fetchUsers} // <-- Función clave: refresca la lista al crear
+                onUserCreated={fetchUsers}
             />
 
         </div>

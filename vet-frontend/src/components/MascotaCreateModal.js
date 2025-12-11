@@ -1,105 +1,42 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
-// El modal recibe tres props: isVisible, onClose, onMascotaCreated
 const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
 
-    // --- 1. DEFINICIÓN INCONDICIONAL DE HOOKS (DEBE IR PRIMERO) ---
-    // Lógica del Dueño
+    // ----------------------------------------------------
+    // --- ESTADOS ---
+    // ----------------------------------------------------
     const [selectedDueno, setSelectedDueno] = useState(null);
+    const [isNewDuenoMode, setIsNewDuenoMode] = useState(false);
+    const [newDuenoData, setNewDuenoData] = useState({ nombre: '', email: '', telefono: '', direccion: '' });
+
+    const [mascotaData, setMascotaData] = useState({ nombre: '', especie: '', raza: '', fecha_nacimiento: '', peso_inicial: '', foto_url: '' });
+
     const [duenoSearchTerm, setDuenoSearchTerm] = useState('');
     const [duenoSearchResults, setDuenoSearchResults] = useState([]);
-    const [isNewDuenoMode, setIsNewDuenoMode] = useState(false);
-    const [newDuenoData, setNewDuenoData] = useState({ nombre: '', telefono: '', email: '', direccion: '' });
 
-    // Lógica de la Mascota
-    const [mascotaData, setMascotaData] = useState({ nombre: '', especie: '', raza: '', fecha_nacimiento: '', peso_inicial: '', foto_url: '' });
-    // const [imageFile, setImageFile] = useState(null); // Desactivado por ahora
-
-    // Feedback
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Tokens y Headers (necesarios para todas las peticiones)
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
 
-    // --- LÓGICA DE BÚSQUEDA DEL DUEÑO (useCallback) ---
+    // ----------------------------------------------------
+    // --- LÓGICA DE BÚSQUEDA Y UTILIDADES ---
+    // ----------------------------------------------------
     const searchDuenos = useCallback(async (term) => {
-        if (term.length < 3) {
-            setDuenoSearchResults([]);
-            return;
-        }
+        if (term.length < 3) return;
         try {
             const response = await axios.get(`${API_BASE_URL}/duenos?search=${term}`, { headers });
             setDuenoSearchResults(response.data);
         } catch (err) {
-            console.error('Error searching owners:', err);
             setDuenoSearchResults([]);
         }
     }, [headers]);
-
-    const handleDuenoSearchChange = (e) => {
-        const term = e.target.value;
-        setDuenoSearchTerm(term);
-        // Llamar a la búsqueda si el término es lo suficientemente largo
-        if (term.length >= 3) {
-            searchDuenos(term);
-        } else {
-            setDuenoSearchResults([]);
-        }
-    };
-
-    // --- Lógica de Creación Principal (POST Mascota) ---
-    const handleCreateMascota = async (e) => {
-        e.preventDefault();
-        setError('');
-        setMessage('');
-        setLoading(true);
-
-        let finalDuenoId = selectedDueno ? selectedDueno.id : null;
-
-        try {
-            // 1. Manejar el Dueño Nuevo (POST /api/duenos)
-            if (isNewDuenoMode) {
-                if (!newDuenoData.nombre || !newDuenoData.email) throw new Error('Complete los datos obligatorios del nuevo Dueño (Nombre y Email).');
-
-                // Asegurarse de que el Backend retorna el objeto Dueño con el ID
-                const duenoResponse = await axios.post(`${API_BASE_URL}/duenos`, newDuenoData, { headers });
-                finalDuenoId = duenoResponse.data.dueno ? duenoResponse.data.dueno.id : duenoResponse.data.id;
-                setMessage('Dueño registrado. Registrando Mascota...');
-            } else if (!finalDuenoId) {
-                throw new Error('Debe seleccionar o registrar un Dueño antes de continuar.');
-            }
-
-            // 2. Crear Mascota (POST /api/mascotas)
-            const mascotaPayload = {
-                ...mascotaData,
-                id_dueno: finalDuenoId,
-                // Si no se usa Cloudinary, foto_url se envía como texto vacío o la URL ingresada
-                foto_url: mascotaData.foto_url || null,
-            };
-
-            await axios.post(`${API_BASE_URL}/mascotas`, mascotaPayload, { headers });
-
-            setMessage('✅ Mascota y Dueño registrados exitosamente.');
-            onMascotaCreated(); // Refresca la lista padre
-
-            // Cerrar y limpiar
-            setTimeout(() => {
-                handleClose(); // Usar la función de limpieza
-            }, 1500);
-
-        } catch (err) {
-            const errMsg = err.response?.data?.message || err.message || 'Error desconocido al registrar.';
-            setError(errMsg);
-            setMessage('');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Función de reinicio de estados y cierre
     const handleClose = () => {
@@ -112,11 +49,114 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
         setDuenoSearchResults([]);
         setNewDuenoData({ nombre: '', telefono: '', email: '', direccion: '' });
         setMascotaData({ nombre: '', especie: '', raza: '', fecha_nacimiento: '', peso_inicial: '', foto_url: '' });
-        // setImageFile(null); // Limpieza de imagen
-        onClose();
+        onClose(); // Llama a la función del padre para ocultar el modal
     };
 
-    // Estilos básicos para el modal (Replicados del paso anterior)
+    // Efecto para debounce de búsqueda
+    useEffect(() => {
+        if (duenoSearchTerm.length >= 3) {
+            const delayDebounceFn = setTimeout(() => {
+                searchDuenos(duenoSearchTerm);
+            }, 500);
+            return () => clearTimeout(delayDebounceFn);
+        } else {
+            setDuenoSearchResults([]);
+        }
+    }, [duenoSearchTerm, searchDuenos]);
+
+
+    // Limpieza de Payload para SQL (Convierte "" a null y strings a number)
+    const cleanPayload = (data) => {
+        const peso = data.peso_inicial ? parseFloat(data.peso_inicial) : null;
+
+        return {
+            nombre: data.nombre,
+            especie: data.especie,
+            raza: data.raza || null,
+            fecha_nacimiento: data.fecha_nacimiento || null,
+            peso_inicial: peso,
+            foto_url: data.foto_url || null,
+        };
+    };
+
+    // ----------------------------------------------------
+    // --- MANEJO DE ENVÍO PRINCIPAL ---
+    // ----------------------------------------------------
+
+    const handleCreateMascota = async (e) => {
+        e.preventDefault();
+        setError('');
+        setMessage('');
+        setLoading(true);
+
+        let finalDuenoId = null;
+
+        try {
+            // 1. MANEJAR DUEÑO: Obtener/Crear el ID
+            if (isNewDuenoMode) {
+                // Validación estricta para el nuevo dueño
+                if (!newDuenoData.nombre || !newDuenoData.email) {
+                    throw new Error('Complete Nombre y Email obligatorios del Dueño.');
+                }
+
+                // Limpieza del payload del nuevo dueño (para campos opcionales)
+                const duenoPayload = {
+                    nombre: newDuenoData.nombre,
+                    email: newDuenoData.email,
+                    telefono: newDuenoData.telefono || null,
+                    direccion: newDuenoData.direccion || null,
+                };
+
+                const duenoResponse = await axios.post(`${API_BASE_URL}/duenos`, duenoPayload, { headers });
+
+                // CRÍTICO: CAPTURAR EL ID. Captura el ID de la respuesta del Backend
+                finalDuenoId = duenoResponse.data.id || duenoResponse.data.dueno?.id;
+
+                if (!finalDuenoId) throw new Error('Error de captura: El Backend de Dueno no devolvió el ID.');
+                setMessage('Dueño registrado. Registrando Mascota...');
+
+            } else if (selectedDueno) {
+                // Dueño existente: Leer el ID directamente del estado
+                finalDuenoId = selectedDueno.id;
+            } else {
+                // No hay dueño seleccionado ni modo nuevo
+                throw new Error('Debe seleccionar o registrar un Dueño.');
+            }
+
+            // 2. VERIFICACIÓN FINAL Y CREACIÓN DE MASCOTA
+            if (!finalDuenoId) {
+                // Esto debería ser imposible si las rutas de arriba funcionan.
+                throw new Error('El ID del Dueño es nulo, no se puede crear la mascota.');
+            }
+
+            const mascotaPayload = {
+                ...cleanPayload(mascotaData), // Campos limpios (peso, fecha, etc.)
+                id_dueno: finalDuenoId,     // EL ID FORZADO Y LIMPIO
+            };
+
+            // console.log('Payload Mascota Final:', mascotaPayload); // Debug
+
+            await axios.post(`${API_BASE_URL}/mascotas`, mascotaPayload, { headers }); // Línea de POST
+
+            setMessage('✅ Mascota y Dueño registrados exitosamente.');
+            onMascotaCreated();
+            setTimeout(handleClose, 1500);
+
+        } catch (err) {
+            const msg = err.message.includes('ID del Dueño') ? err.message :
+                (err.response?.data?.message || err.message || 'Error desconocido al registrar.');
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // ----------------------------------------------------
+    // --- RENDERIZADO DEL MODAL ---
+    // ----------------------------------------------------
+
+    // Estilos para el modal (CRÍTICO para que aparezca como popup)
     const modalStyle = {
         position: 'fixed',
         top: 0,
@@ -140,14 +180,14 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
         maxHeight: '90vh', overflowY: 'auto'
     };
 
-    // --- 2. EL RETURN CONDICIONAL VA DESPUÉS DE LOS HOOKS Y LÓGICA ---
-    if (!isVisible) return null; // <-- Ahora está en el lugar correcto
+
+    if (!isVisible) return null; // El modal solo se renderiza si isVisible es true
 
     return (
         <div style={modalStyle}>
             <div style={contentStyle}>
                 <button
-                    onClick={handleClose}
+                    onClick={handleClose} // LLAMA A LA FUNCIÓN DE CIERRE
                     style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '1.2em', cursor: 'pointer' }}
                     disabled={loading}
                 >
@@ -198,7 +238,7 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
                                         <input
                                             type="text"
                                             value={duenoSearchTerm}
-                                            onChange={handleDuenoSearchChange}
+                                            onChange={(e) => setDuenoSearchTerm(e.target.value)}
                                             placeholder="Buscar Dueño..."
                                             style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                                             disabled={loading}
@@ -207,7 +247,7 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
                                             <ul style={{ listStyleType: 'none', padding: 0, border: '1px solid #eee', maxHeight: '150px', overflowY: 'auto', margin: '5px 0 0 0' }}>
                                                 {duenoSearchResults.map(dueno => (
                                                     <li key={dueno.id} onClick={() => setSelectedDueno(dueno)} style={{ padding: '8px', borderBottom: '1px solid #eee', cursor: 'pointer', backgroundColor: '#fff', ':hover': { backgroundColor: '#f0f0f0' } }}>
-                                                        {dueno.nombre} ({dueno.email || dueno.telefono})
+                                                        {dueno.nombre} (ID: {dueno.id})
                                                     </li>
                                                 ))}
                                             </ul>
@@ -236,14 +276,14 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
                         disabled={loading || (!selectedDueno && !isNewDuenoMode)}
                     >
                         <legend style={{ fontWeight: 'bold' }}>Datos del Paciente</legend>
-                        <input type="text" placeholder="Nombre de la Mascota" required value={mascotaData.nombre} onChange={(e) => setMascotaData({ ...mascotaData, nombre: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
+                        <input type="text" placeholder="Nombre de la Mascota (Obligatorio)" required value={mascotaData.nombre} onChange={(e) => setMascotaData({ ...mascotaData, nombre: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
                         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                            <input type="text" placeholder="Especie" required value={mascotaData.especie} onChange={(e) => setMascotaData({ ...mascotaData, especie: e.target.value })} style={{ flex: 1, padding: '8px' }} />
-                            <input type="text" placeholder="Raza" required value={mascotaData.raza} onChange={(e) => setMascotaData({ ...mascotaData, raza: e.target.value })} style={{ flex: 1, padding: '8px' }} />
+                            <input type="text" placeholder="Especie (Obligatorio)" required value={mascotaData.especie} onChange={(e) => setMascotaData({ ...mascotaData, especie: e.target.value })} style={{ flex: 1, padding: '8px' }} />
+                            <input type="text" placeholder="Raza" value={mascotaData.raza} onChange={(e) => setMascotaData({ ...mascotaData, raza: e.target.value })} style={{ flex: 1, padding: '8px' }} />
                         </div>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                             <label style={{ minWidth: '150px' }}>Fecha de Nacimiento:</label>
-                            <input type="date" required value={mascotaData.fecha_nacimiento} onChange={(e) => setMascotaData({ ...mascotaData, fecha_nacimiento: e.target.value })} style={{ flex: 1, padding: '8px' }} />
+                            <input type="date" value={mascotaData.fecha_nacimiento} onChange={(e) => setMascotaData({ ...mascotaData, fecha_nacimiento: e.target.value })} style={{ flex: 1, padding: '8px' }} />
                         </div>
                         <input type="number" placeholder="Peso Inicial (kg)" value={mascotaData.peso_inicial} onChange={(e) => setMascotaData({ ...mascotaData, peso_inicial: e.target.value })} style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
 
@@ -257,8 +297,8 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
                     <button
                         type="submit"
                         style={{ width: '100%', padding: '12px', backgroundColor: loading ? '#6c757d' : '#28a745', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
-                        // Habilitar solo si no está cargando Y el Dueño está definido Y el nombre de la Mascota está lleno
-                        disabled={loading || (!selectedDueno && !isNewDuenoMode) || !mascotaData.nombre}
+                        // Habilitar solo si no está cargando Y el Dueño está definido Y el nombre/especie de la Mascota está lleno
+                        disabled={loading || (!selectedDueno && !isNewDuenoMode) || !mascotaData.nombre || !mascotaData.especie}
                     >
                         {loading ? 'Procesando Registro...' : 'Guardar Mascota y Dueño'}
                     </button>

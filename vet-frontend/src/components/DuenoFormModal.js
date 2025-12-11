@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const DuenoFormModal = ({ duenoId, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -20,9 +20,9 @@ const DuenoFormModal = ({ duenoId, onClose, onSuccess }) => {
     const headers = { 'Authorization': `Bearer ${token}` };
 
     useEffect(() => {
-        if (duenoId) { // Modo Edición: Cargar datos
+        if (duenoId) {
             fetchDuenoData(duenoId);
-        } else { // Modo Creación (si lo habilitas)
+        } else {
             setLoading(false);
         }
     }, [duenoId]);
@@ -53,8 +53,8 @@ const DuenoFormModal = ({ duenoId, onClose, onSuccess }) => {
             await axios.put(`${API_BASE_URL}/duenos/${duenoId}`, formData, { headers });
 
             alert('Dueño actualizado con éxito.');
-            onSuccess(); // Refresca la lista de dueños en DuenoList
-            onClose(); // Cierra el modal
+            onSuccess();
+            onClose();
 
         } catch (err) {
             const errMsg = err.response?.data?.message || 'Error al guardar los cambios.';
@@ -64,7 +64,7 @@ const DuenoFormModal = ({ duenoId, onClose, onSuccess }) => {
         }
     };
 
-    if (!duenoId && duenoId !== 0) return null; // Solo renderizar si estamos editando o creando
+    if (!duenoId && duenoId !== 0) return null;
     if (loading) return <p>Cargando datos del dueño...</p>;
 
     // Estilos para simular un modal

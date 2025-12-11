@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import MascotaCreateModal from './MascotaCreateModal';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://veterinaria-final-1.onrender.com/api';
 
 const MascotaList = () => {
     const [mascotas, setMascotas] = useState([]);
@@ -12,10 +12,7 @@ const MascotaList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // OBTENEMOS EL TOKEN UNA SOLA VEZ
-    // (No lo definimos como estado, lo leemos de localStorage dentro de useCallback)
-
-    // Función para obtener la lista (usamos useCallback para la optimización)
+    // Función para obtener la lista
     const fetchMascotas = useCallback(async (searchQuery = '') => {
         setLoading(true);
 
@@ -27,10 +24,10 @@ const MascotaList = () => {
             return;
         }
 
-        const headers = { 'Authorization': `Bearer ${token}` }; // Los headers se crean aquí
+        const headers = { 'Authorization': `Bearer ${token}` };
 
         try {
-            // Llama a /api/mascotas o /api/mascotas?search=query
+
             const url = searchQuery ? `${API_BASE_URL}/mascotas?search=${searchQuery}` : `${API_BASE_URL}/mascotas`;
 
             const response = await axios.get(url, { headers });
@@ -42,29 +39,25 @@ const MascotaList = () => {
         } finally {
             setLoading(false);
         }
-    }, []); // <--- ¡DEPENDENCIA VACÍA! Esto es clave para evitar que fetchMascotas cambie en cada render
+    }, []);
 
-    // useEffect para la carga inicial y cuando cambia el término de búsqueda
+
     useEffect(() => {
-        // La dependencia de `fetchMascotas` aquí está bien porque se definió con useCallback([]),
-        // pero la dependencia principal que dispara la búsqueda es searchTerm.
         fetchMascotas(searchTerm);
 
-    }, [searchTerm, fetchMascotas]); // <- Quitamos 'token' si no está en el scope, y dependemos de searchTerm
+    }, [searchTerm, fetchMascotas]);
 
-    // Función para manejar el cambio en la barra de búsqueda (sin enviar inmediatamente)
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
-    // Función para manejar el clic en "Mostrar Todas"
+
     const handleShowAll = () => {
-        setSearchTerm(''); // Limpia el término de búsqueda
+        setSearchTerm('');
     };
 
 
     if (loading && mascotas.length === 0) return <p>Cargando listado de pacientes...</p>;
-    // Mostrar el contenido anterior si está cargando, pero ya tenemos datos (suaviza el flicker)
 
     return (
         <div style={{ maxWidth: '1200px', margin: 'auto', padding: '20px' }}>
@@ -150,7 +143,7 @@ const MascotaList = () => {
             <MascotaCreateModal
                 isVisible={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onMascotaCreated={() => fetchMascotas(searchTerm)} // Refresca lista al crear
+                onMascotaCreated={() => fetchMascotas(searchTerm)}
             />
 
         </div>

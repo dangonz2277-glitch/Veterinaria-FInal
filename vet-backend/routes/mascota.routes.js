@@ -1,5 +1,3 @@
-// Archivo: /vet-backend/routes/mascota.routes.js (VERSIÓN FINAL CON TUS NOMBRES)
-
 const express = require('express');
 const router = express.Router();
 const mascotaController = require('../controllers/mascota.controller');
@@ -23,10 +21,10 @@ router.get('/admin/all', verifyToken, isAdmin, mascotaController.findAllIncludin
 // --- Rutas de Escritura (POST, PUT) ---
 
 // 5. Crear Mascota (POST)
-router.post('/', verifyToken, validateMascota, mascotaController.create);
+router.post('/', verifyToken, mascotaController.create);
 
 // 6. Actualización COMPLETA de datos
-router.put('/:id', verifyToken, validateMascota, mascotaController.update);
+router.put('/:id', verifyToken, mascotaController.update);
 
 // 7. Cambiar estado lógico (Dar de Baja y Reactivar)
 router.put('/estado/:id', verifyToken, isAdmin, mascotaController.updateStatus);
