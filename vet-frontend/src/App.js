@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/Login';
 import Nav from './components/Nav';
 import Dashboard from './components/Dashboard';
-import HomeDashboard from './components/HomeDashboard'; // <-- Componente Nuevo
+import HomeDashboard from './components/HomeDashboard';
 import UserList from './components/UserList';
 import MascotaList from './components/MascotaList';
 import MascotaDetail from './components/MascotaDetail';
@@ -22,9 +22,7 @@ const AdminRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const rol = localStorage.getItem('rol');
 
-  // Redirige al Dashboard si no está logueado o no es administrador
   if (!token || rol !== 'administrador') {
-    // Redirige al dashboard principal, no al login, si el token existe pero el rol no es suficiente.
     return <Navigate to="/dashboard" />;
   }
   return children;
