@@ -34,15 +34,19 @@ const findAllActive = async () => {
 
 // 2. Crear nueva mascota (POST)
 const create = async (data) => {
-
     const query = `
         INSERT INTO mascotas (id_dueno, nombre, especie, raza, fecha_nacimiento, peso_inicial, foto_url)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `;
     const values = [
-        data.id_dueno, data.nombre, data.especie, data.raza,
-        data.fecha_nacimiento, data.peso_inicial, data.foto_url
+        data.id_dueno, // <-- CRÍTICO: Esto debe ser un número, no null
+        data.nombre,
+        data.especie,
+        data.raza || null,
+        data.fecha_nacimiento || null,
+        data.peso_inicial || null,
+        data.foto_url || null
     ];
     const result = await pool.query(query, values);
     return result.rows[0];

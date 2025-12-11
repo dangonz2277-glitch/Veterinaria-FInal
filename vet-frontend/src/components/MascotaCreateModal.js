@@ -25,6 +25,8 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
 
+    const debounceTimer = useRef(null);
+
     // ----------------------------------------------------
     // --- LÓGICA DE BÚSQUEDA Y UTILIDADES ---
     // ----------------------------------------------------
@@ -37,6 +39,25 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
             setDuenoSearchResults([]);
         }
     }, [headers]);
+
+    const handleDuenoSearchChange = (e) => {
+        const term = e.target.value;
+        setDuenoSearchTerm(term);
+
+        // 🛑 Lógica para limpiar el temporizador anterior
+        if (debounceTimer.current) {
+            clearTimeout(debounceTimer.current);
+        }
+
+        if (term.length >= 3) {
+            // Establecer un nuevo temporizador que llama a searchDuenos
+            debounceTimer.current = setTimeout(() => {
+                searchDuenos(term);
+            }, 500);
+        } else {
+            setDuenoSearchResults([]);
+        }
+    };
 
     // Función de reinicio de estados y cierre
     const handleClose = () => {
@@ -51,18 +72,6 @@ const MascotaCreateModal = ({ isVisible, onClose, onMascotaCreated }) => {
         setMascotaData({ nombre: '', especie: '', raza: '', fecha_nacimiento: '', peso_inicial: '', foto_url: '' });
         onClose(); // Llama a la función del padre para ocultar el modal
     };
-
-    // Efecto para debounce de búsqueda
-    useEffect(() => {
-        if (duenoSearchTerm.length >= 3) {
-            const delayDebounceFn = setTimeout(() => {
-                searchDuenos(duenoSearchTerm);
-            }, 500);
-            return () => clearTimeout(delayDebounceFn);
-        } else {
-            setDuenoSearchResults([]);
-        }
-    }, [duenoSearchTerm, searchDuenos]);
 
 
     // Limpieza de Payload para SQL (Convierte "" a null y strings a number)

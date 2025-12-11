@@ -39,31 +39,20 @@ const findAllActive = async () => {
 // 2. Crear nueva mascota (POST)
 const create = async (req, res) => {
     try {
-        const { id_dueno, nombre, especie, raza, fecha_nacimiento, peso_inicial, foto_url } = req.body;
+        console.log('Payload Mascota recibido en el servidor:', req.body);
+        const nuevaMascota = await mascotaModel.create(req.body);
 
-        if (!id_dueno) {
-            return res.status(400).json({ message: 'Error: El ID del Dueño es obligatorio y falta.' });
-        }
-
-        const payload = {
-            id_dueno,
-            nombre,
-            especie,
-            raza,
-            fecha_nacimiento,
-            peso_inicial,
-            foto_url
-        };
-
-        const nuevaMascota = await mascotaModel.create(payload); // Llama al modelo
         return res.status(201).json(nuevaMascota);
-
     } catch (error) {
-        console.error('Error al crear mascota (FINAL):', error);
-        // Devolver un mensaje más específico si es un error de DB
-        if (error.code === '23502') { // Código de error PostgreSQL para NOT NULL violation
-            return res.status(500).json({ message: 'Error de la Base de Datos: Falta un campo obligatorio (NOT NULL).', detail: error.detail });
+        console.error('ERROR AL CREAR MASCOTA (Backend):', error);
+
+        if (error.code === '23502') {
+            return res.status(500).json({
+                message: 'Error de BD: Falta el campo obligatorio del DUEÑO o del NOMBRE.',
+                detail: error.message
+            });
         }
+
         return res.status(500).json({ message: 'Error interno del servidor al crear mascota.' });
     }
 };
