@@ -13,7 +13,7 @@ const Login = () => {
     const navigate = useNavigate();
 
     // Reemplaza con tu propia clave pública de reCAPTCHA
-    const RECAPTCHA_SITE_KEY = '6LcqZiYsAAAAABPTrvAnGBqaUVzNPzYTlPIQtokf';
+    const RECAPTCHA_SITE_KEY = '6LcYGygsAAAAAOLuSBWnWV9Nu-ngJrRmdNhgPTdp';
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
