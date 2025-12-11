@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const HomeDashboard = () => {
     const navigate = useNavigate();
     const rol = localStorage.getItem('rol');
 
-    // --- ESTADO PARA NOTICIAS ---
+    // --- ESTADO Y LÓGICA DE NOTICIAS ---
     const [news, setNews] = useState([]);
     const [newsLoading, setNewsLoading] = useState(true);
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
-    };
-
-    // --- FUNCIÓN DE FETCH DE NOTICIAS ---
     useEffect(() => {
         setNewsLoading(true);
+        // Simulación de noticias
         setTimeout(() => {
             const mockNews = [
                 { id: 1, title: 'Avance en vacunas felinas contra el FIV.', source: 'VetScience Today', date: '2025-12-10' },
@@ -28,12 +23,13 @@ const Dashboard = () => {
         }, 1000);
     }, []);
 
+    // --- SECCIONES DE NAVEGACIÓN (Modificadas) ---
     const navigationSections = {
         administrador: [
             { name: 'Mascotas Activas', path: '/mascotas', description: 'Ver y gestionar todos los pacientes activos.' },
-            { name: 'Historial de Pacientes', path: '/mascotas/inactivos', description: 'Ver pacientes dados de baja y opción de reactivar.' },
-            { name: 'Usuarios y Permisos', path: '/usuarios', description: 'Gestionar cuentas de administradores y veterinarios.' },
-            { name: 'Fichas Médicas', path: '/fichas', description: 'Buscar historiales clínicos por fecha o paciente.' },
+            { name: 'Gestión de Dueños', path: '/duenos', description: 'Crear, buscar y gestionar la información de los dueños.' },
+            { name: 'Gestión de Usuarios', path: '/usuarios', description: 'Gestionar cuentas de administradores y veterinarios.' },
+            { name: 'Reportes Globales', path: '/reportes-admin', description: 'Visualizar reportes estadísticos y globales.' },
         ],
         veterinario: [
             { name: 'Mascotas Activas', path: '/mascotas', description: 'Acceso a la lista principal de pacientes para registro de consultas.' },
@@ -46,20 +42,15 @@ const Dashboard = () => {
     return (
         <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
 
-            {/* --- SECCIÓN SUPERIOR: BIENVENIDA Y CIERRE DE SESIÓN --- */}
+            {/* --- SECCIÓN SUPERIOR: Bienvenida --- */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #ccc', paddingBottom: '15px', marginBottom: '25px' }}>
                 <h1 style={{ color: '#007bff' }}>Veterinaria 🐾 Panel Principal</h1>
-                <button
-                    onClick={handleLogout}
-                    style={{ padding: '10px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', transition: 'background-color 0.2s' }}
-                >
-                    Cerrar Sesión
-                </button>
+                {/* 🛑 Eliminamos el botón de Cerrar Sesión */}
             </div>
 
             <h2 style={{ fontSize: '1.5em', marginBottom: '20px' }}>Bienvenido/a, {rol.charAt(0).toUpperCase() + rol.slice(1)}!</h2>
 
-            {/* --- CUERPO PRINCIPAL (Grilla con Noticias y Navegación) --- */}
+            {/* --- CUERPO PRINCIPAL (Noticias y Navegación) --- */}
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '30px' }}>
 
                 {/* COLUMNA 1: NAVEGACIÓN RÁPIDA */}
@@ -78,15 +69,14 @@ const Dashboard = () => {
                             ))}
                         </div>
                     </div>
-                    {/* Información adicional del rol */}
                     {rol === 'administrador' && (
                         <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                            <p style={{ color: '#28a745', fontWeight: 'bold' }}>🔑 Nivel de Acceso: Completo. Puede modificar usuarios, permisos y estados lógicos de pacientes.</p>
+                            <p style={{ color: '#28a745', fontWeight: 'bold' }}>🔑 Nivel de Acceso: Completo. Puede modificar usuarios y permisos.</p>
                         </div>
                     )}
                 </div>
 
-                {/* COLUMNA 2: NOTICIAS (NUEVO) */}
+                {/* COLUMNA 2: NOTICIAS */}
                 <div style={{ padding: '15px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <h3 style={{ color: '#ff69b4', borderBottom: '1px solid #ff69b4', paddingBottom: '10px', marginBottom: '15px' }}>Noticias del Mundo Veterinario 🌎</h3>
                     {newsLoading ? (
@@ -105,4 +95,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default HomeDashboard;

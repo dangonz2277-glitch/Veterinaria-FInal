@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/Login';
 import Nav from './components/Nav';
 import Dashboard from './components/Dashboard';
+import HomeDashboard from './components/HomeDashboard'; // <-- Componente Nuevo
 import UserList from './components/UserList';
 import MascotaList from './components/MascotaList';
 import MascotaDetail from './components/MascotaDetail';
@@ -21,7 +22,9 @@ const AdminRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const rol = localStorage.getItem('rol');
 
+  // Redirige al Dashboard si no está logueado o no es administrador
   if (!token || rol !== 'administrador') {
+    // Redirige al dashboard principal, no al login, si el token existe pero el rol no es suficiente.
     return <Navigate to="/dashboard" />;
   }
   return children;
@@ -44,10 +47,15 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Rutas Públicas */}
         <Route path="/login" element={<Login />} />
+
+        {/* 🛑 Redirigir la raíz (/) al login (si no hay rutas anidadas en /) */}
+        <Route path="/" element={<Navigate to="/login" />} />
 
         {/* Rutas Privadas que usan PrivateLayout para mostrar el menú: */}
 
+        {/* 1. Dashboard Principal (Ruta de Login Exitosa) */}
         <Route
           path="/dashboard"
           element={
@@ -57,105 +65,79 @@ function App() {
           }
         />
 
-        {/* Gestión de Usuarios (Ruta protegida por Token y Rol) - ¡USAR USERLIST! */}
+        {/* 2. 🎯 NUEVA RUTA: Dashboard Seguro (Para el clic en VetApp) */}
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <PrivateLayout><HomeDashboard /></PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 3. Gestión de Mascotas (Listado) */}
+        <Route
+          path="/mascotas"
+          element={
+            <PrivateRoute>
+              <PrivateLayout><MascotaList /></PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 4. Vista de Detalle de Mascota (Usando el parámetro dinámico ':id') */}
+        <Route
+          path="/mascotas/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout><MascotaDetail /></PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 5. Gestión de Dueños (Solo Administrador) */}
+        <Route
+          path="/duenos"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <AdminRoute><DuenoList /></AdminRoute>
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 6. Gestión de Usuarios (Solo Administrador) */}
         <Route
           path="/usuarios"
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <AdminRoute>
-                  <UserList />
-                </AdminRoute>
+                <AdminRoute><UserList /></AdminRoute>
               </PrivateLayout>
             </PrivateRoute>
           }
         />
 
-        {/* Gestión de Mascotas (Listado y Búsqueda) */}
+        {/* 7. Historial de Pacientes (Solo Administrador) */}
         <Route
-          path="/mascotas"
+          path="/mascotas-baja"
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <MascotaList /> {/* <-- 2. REEMPLAZAMOS EL PLACEHOLDER */}
+                <AdminRoute><MascotaInactiveList /></AdminRoute>
               </PrivateLayout>
             </PrivateRoute>
           }
         />
 
-        {/* Vista de Detalle de Mascota (Próximo paso) */}
-
-        <Route
-          path="/mascotas"
-          element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <MascotaList />
-              </PrivateLayout>
-            </PrivateRoute>
-          }
-        />
-
-        {/* 🔑 Vista de Detalle de Mascota (Ruta con ID) */}
-        <Route
-          path="/mascotas/:id" // <-- RUTA DINÁMICA
-          element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <MascotaDetail /> {/* <-- COMPONENTE FINAL */}
-              </PrivateLayout>
-            </PrivateRoute>
-          }
-        />
-
-        {/* Se usa el parámetro dinámico ':id' */}
-        <Route
-          path="/mascotas/:id"
-          element={
-            <PrivateRoute>
-              <PrivateLayout>
-                {/* <MascotaDetail />  */}
-                <h1>Vista de Detalle de Mascota ID: (Aquí irá el componente MascotaDetail)</h1>
-              </PrivateLayout>
-            </PrivateRoute>
-          }
-        />
-
-        {/* Redirigir raíz a login */}
-        <Route path="/" element={<Navigate to="/login" />} />
-
-        <Route
-          path="/mascotas-baja" // <-- RUTA NUEVA
-          element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <AdminRoute>
-                  <MascotaInactiveList /> {/* <-- Componente de Inactivos */}
-                </AdminRoute>
-              </PrivateLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/duenos" // <-- ¡LA RUTA FALTANTE!
-          element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <AdminRoute>
-                  <DuenoList /> {/* <-- Componente del listado */}
-                </AdminRoute>
-              </PrivateLayout>
-            </PrivateRoute>
-          }
-        />
+        {/* 8. Reportes Globales (Solo Administrador) */}
         <Route
           path="/reportes-admin"
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <AdminRoute>
-                  <ReportesAdmin />
-                </AdminRoute>
+                <AdminRoute><ReportesAdmin /></AdminRoute>
               </PrivateLayout>
             </PrivateRoute>
           }

@@ -11,6 +11,10 @@ const Nav = () => {
         navigate('/login');
     };
 
+    const handleDashboardClick = () => {
+        navigate('/home');
+    };
+
     // Estilos muy básicos, solo para funcionalidad
     const linkStyle = {
         padding: '10px',
@@ -26,28 +30,42 @@ const Nav = () => {
         alignItems: 'center'
     };
 
+    const titleStyle = {
+        color: 'white',
+        fontWeight: 'bold',
+        marginRight: '20px',
+        cursor: 'pointer',
+        fontSize: '1.1em'
+    };
+
     return (
         <nav style={navStyle}>
-            <div>
-                <span style={{ color: 'white', fontWeight: 'bold', marginRight: '20px' }}>
-                    🏥 VetApp ({rol.toUpperCase()})
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+                {/* TÍTULO: Usa navigate para ir al Dashboard (Ruta raíz /) */}
+                <span onClick={handleDashboardClick} style={titleStyle}>
+                    🏥 VetApp ({rol ? rol.toUpperCase() : 'Invitado'})
                 </span>
 
                 {/* Opciones Comunes a Ambos Roles */}
                 <Link to="/mascotas" style={linkStyle}>Gestión de Mascotas</Link>
 
-                {/* 🔑 Opciones Restringidas: Solo Administrador */}
+                {/* Opciones Restringidas: Solo Administrador */}
                 {rol === 'administrador' && (
                     <>
                         <Link to="/duenos" style={linkStyle}>Gestión de Dueños</Link>
                         <Link to="/usuarios" style={linkStyle}>Gestión de Usuarios</Link>
-                        <Link to="/mascotas-baja" style={linkStyle}>Historial Pacientes</Link>
+                        {/* Eliminadas Fichas Médicas e Historial Pacientes */}
                         <Link to="/reportes-admin" style={linkStyle}>Reportes Globales</Link>
                     </>
                 )}
             </div>
 
-            <button onClick={handleLogout} style={{ padding: '8px 15px', cursor: 'pointer' }}>
+            {/* ÚNICO BOTÓN DE CERRAR SESIÓN */}
+            <button
+                onClick={handleLogout}
+                style={{ padding: '8px 15px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px' }}
+            >
                 Cerrar Sesión
             </button>
         </nav>
